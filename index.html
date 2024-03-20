@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Recommendation App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+      width: 70%;
+      padding: 10px;
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #recommendations {
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Course Recommendation App</h1>
+  <input type="text" id="searchInput" placeholder="Enter course title">
+  <button onclick="recommendCourses()">Recommend</button>
+  <div id="recommendations"></div>
+
+  <script>
+    async function recommendCourses() {
+      const searchInput = document.getElementById('searchInput').value;
+      const num_of_rec = 10; // Default number of recommendations
+      console.log(searchInput)
+      try {
+        const response = await fetch('http://localhost:3000/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search_term: searchInput, num_of_rec })
+        });
+        console.log(response)
+    
+        if (!response.ok) {
+          throw new Error('Failed to fetch recommendations');
+        }
+    
+        const recommendations = await response.json();
+        const recommendationsDiv = document.getElementById('recommendations');
+        recommendationsDiv.innerHTML = ''; // Clear previous recommendations
+    
+        const table = document.createElement('table');
+        const headerRow = table.insertRow();
+        const headers = ['Sr. No', 'Course Name', 'Link', 'Price', 'Number of Subscribers'];
+        headers.forEach(headerText => {
+          const header = document.createElement('th');
+          header.textContent = headerText;
+          headerRow.appendChild(header);
+        });
+
+        recommendations.forEach((course, index) => {
+          const row = table.insertRow();
+          const rowData = [index + 1, course.course_title, course.url, course.price, course.num_subscribers];
+          rowData.forEach((data, i) => {
+            const cell = row.insertCell();
+            if (i === 2) {
+              const link = document.createElement('a');
+              link.href = data;
+              link.textContent = 'Link';
+              cell.appendChild(link);
+            } else {
+              cell.textContent = data;
+            }
+          });
+        });
+
+        recommendationsDiv.appendChild(table);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error.message);
+      }
+    }
+  </script>
+</body>
+</html>
